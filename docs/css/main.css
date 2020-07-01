@@ -1,7 +1,62 @@
-h1 {
-    color: red;
+#whateverthefuckyoufuckingwant {
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
 }
-
 body {
-    background-color: #D9BBFF;
+    background-color: #DDDDDD;
+    font-family: Arial, Helvetica, sans-serif;
+}
+#mainflex {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+}
+#sidebar {
+    width: 200px;
+}
+#sidebar > img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+#sidebar > h1 {
+    font-size: medium;
+    text-align: center;
+}
+#mainpage {
+    background-color: #FFFFFF;
+    position: relative;
+    width: 100%;
+    font-size: 11pt;
+}
+nav {
+    width: 100%;
+}
+#searchbar {
+    float: right;
+}
+header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    background-color: #444444;
+}
+#contents{
+    background-color: #DDDDDD;
+    width: 200px;
+    margin-left: 50px;
+    border: 1px #444444 solid;
+}
+#contents > h2 {
+    font-size: 11pt;
+    text-align: center;
+}
+}
+footer {
+    background-color: #FFFFFF;
+}
+footer > p {
+    text-align: center;
 }
