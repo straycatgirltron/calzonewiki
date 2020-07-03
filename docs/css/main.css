@@ -5,8 +5,9 @@
     position: relative;
 }
 body {
-    background-color: #DDDDDD;
-    font-family: Arial, Helvetica, sans-serif;
+    background-color: #ffffff;
+    font-family: sans-serif;
+    color: #000000;
 }
 #mainflex {
     position: relative;
@@ -14,7 +15,9 @@ body {
     flex-direction: row;
 }
 #sidebar {
-    width: 200px;
+    border: black 1px solid;
+    width: 300px;
+    background-color: #ffffff;
 }
 #sidebar > img {
     display: block;
@@ -26,10 +29,23 @@ body {
     text-align: center;
 }
 #mainpage {
-    background-color: #FFFFFF;
+    border: black 1px solid;
+    padding: 16px;
+    background-color: #ffffff;
     position: relative;
     width: 100%;
     font-size: 11pt;
+    line-height: 1.2;
+}
+#introduction > h1 {
+    font-family: 'Georgia', Times, serif;
+    font-size: 32px;
+    font-weight: normal;
+    margin-bottom: 10px;
+}
+#introduction > h2 {
+    font-size: 12px;
+    font-weight: normal;
 }
 nav {
     width: 100%;
@@ -40,10 +56,13 @@ nav {
 header {
     display: flex;
     flex-direction: row;
+    height: 128px;
     width: 100%;
-    background-color: #444444;
+    background-image: linear-gradient(to left, rgb(168, 20, 32, 0), rgb(168, 20, 32, 1)400px, rgb(168, 20, 32, 1)), url(../images/banner.png);
+    background-size: auto;
+    background-position: 100%;
 }
-#contents{
+#contents {
     background-color: #DDDDDD;
     width: 200px;
     margin-left: 50px;
@@ -52,7 +71,6 @@ header {
 #contents > h2 {
     font-size: 11pt;
     text-align: center;
-}
 }
 footer {
     background-color: #FFFFFF;
