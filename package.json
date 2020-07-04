@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "find-this-later-lol"
+    "test": "start firefox test/testpage.html"
   },
   "repository": {
     "type": "git",
@@ -19,5 +19,10 @@
   "bugs": {
     "url": "https://github.com/straycatgirltron/calzonewiki/issues"
   },
-  "homepage": "https://github.com/straycatgirltron/calzonewiki#readme"
+  "homepage": "https://github.com/straycatgirltron/calzonewiki#readme",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "http-server": "^0.12.3",
+    "mocha": "^8.0.1"
+  }
 }

@@ -1,26 +1,66 @@
-// write parser
-// export as class
+// this version of node does not support ES6 and so it doesn't work
+// https://www.matteoagosti.com/blog/2013/02/24/writing-javascript-modules-for-both-browser-and-node/
+// drop the node: https://stackoverflow.com/questions/42857778/how-do-you-run-mocha-tests-in-the-browser
 
-export class Parser {
-    constructor() {
-    }
-
+class Parser {
     async getParsedFile(filename) {
-        let getDocumentPromise = fetch(filename).then(this.parseFile).catch((err) => {
-            throw new Error("Failed to parse incoming file correctly.");
+        let docPromise = new Promise((res, rej) => {
+            let readLocalFile = new XMLHttpRequest();
+            readLocalFile.open("GET", filename, true);
+            readLocalFile.send();
+            console.log("related schpiel");
+            console.log(filename);
+            readLocalFile.onload = function() {
+                console.log(readLocalFile.status);
+                if (readLocalFile.readyState === XMLHttpRequest.DONE && (readLocalFile.status >= 200 && readLocalFile.status < 400)) {
+                    console.log("read!");
+                    res(readLocalFile.responseText);
+                }
+            }
+
+            readLocalFile.onerror = function(e) {
+                // should be AEL but whatever lol :)
+                console.log("failed to read file contents. :(");
+                console.log(e);
+                rej(e);
+            }
+        });
+
+        // "this" is lost when we pass execution to the promise
+        let getDocumentPromise = docPromise.then(this.parseFile.bind(this)).catch((err) => {
+            throw new Error("Failed to parse incoming file correctly: " + err.message + "\n");
         });
 
         return getDocumentPromise;
     }
 
-    parseFile(resp) {
-        let status = response.status;
-        if (status < 200 || status > 300) {
-            // does not account for caching :(
-            throw new Error("Fetch did not succeed.");
+    /**
+     * 
+     * @param {Array[Number]} target - the section we wish to append
+     * @param {Object} content - A nested set of Arrays representing our page sections
+     * @returns {Object} - the section which we have just appended
+     */
+    createHeaderIfNotExists(sectionNumber, content) {
+        let curNode = content;
+        for (const index of sectionNumber) {
+            if (curNode.children[index] === undefined) {
+                // insert a new node, which we need to traverse
+                curNode.children[index] = {
+                    content: "",
+                    title: "UNNAMED SECTION",
+                    children: []
+                };
+            }
+
+            curNode = curNode.children[index];
         }
 
-        let contents = resp.body;
+        return curNode;
+    }
+
+    parseFile(resp) {
+
+        let contents = resp.trim();
         let lines = contents.split(/\r\n/).map((value) => value.trim());
         // read each line separately
 
@@ -30,64 +70,44 @@ export class Parser {
         // tha content
         const headerRegex = new RegExp(/^#+/, "gm");
 
-        let content = [];
-        let curHeaderLevel = 0;
-        let activeContent = [];
+        let content = {children: []};
+        let sectionNumber = [];
 
         let target;
 
-        for (const line of lines.split(2)) {
-            // check if line is a header, and split into content appropriately
-            const isHeaderline = line.match(headerRegex)[0];
+        for (const line of lines.slice(2)) {
+            const isHeaderLine = line.match(headerRegex)[0];
             const headerLevel = isHeaderLine.length;
+
+            // check if line is a header, and split into content appropriately
             if (headerLevel != 0) {
-                if (activeContent.length < headerLevel) {
-                    while (activeContent.length < headerLevel) {
-                        activeContent[activeContent.length] = 1;
+                if (sectionNumber.length < headerLevel) {
+                    while (sectionNumber.length < headerLevel) {
+                        sectionNumber[sectionNumber.length] = 0;
                     }
                 } else {
-                    while (activeContent.length > headerLevel) {
-                        activeContent.pop();
+                    while (sectionNumber.length > headerLevel) {
+                        // decrease header level if we're backing out
+                        sectionNumber.pop();
                     }
 
-                    activeContent[headerLevel - 1]++;
+                    // if we're removing header levels then we've been here before -- increment last relevant header level
+                    sectionNumber[headerLevel - 1]++;
                 }
 
-                target = this.createHeaderIfNotExists(content, activeContent);
-            }
+                // get the node we currently plan to modify
+                target = this.createHeaderIfNotExists(sectionNumber, content);
+            } else {
 
-            // target now contains the line which we are editing
-            target.content.append("\n" + line);
+                // line belongs to currently active header. start writing.
+                if (target !== undefined) {
+                    target.content.append(line + "\n");
+                }
+            }
         }
 
-        return target;
-    }
+        // should be parsed at this point
 
-    /**
-     * 
-     * @param {Array[Number]} target - the section we wish to append
-     * @param {Object} content - A nested set of Arrays representing our page sections
-     * @returns {Object} - the section which we have just appended
-     */
-    createHeaderIfNotExists(target, content) {
-        // start from root
-        // see if we can go to the desired sub-index
-        // if it does not exist, add a new section.
-        // TODO: Figure out how to format sections.
-        // content
-        // title
-        // children
-        let curNode = content;
-        for (const sectionNum of target) {
-            if (curNode.children[sectionNum] == null) {
-                curNode.children[sectionNum] = {
-                    content: "",
-                    title: "UNNAMED SECTION",
-                    children: []
-                };
-            }
-
-            curNode = curNode.children[sectionNum];
-        }
+        return content;
     }
 }
