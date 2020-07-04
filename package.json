@@ -1,0 +1,23 @@
+{
+  "name": "calzonewiki",
+  "version": "1.0.0",
+  "description": "Client-side tools for the Calzone Wiki",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "find-this-later-lol"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/straycatgirltron/calzonewiki.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/straycatgirltron/calzonewiki/issues"
+  },
+  "homepage": "https://github.com/straycatgirltron/calzonewiki#readme"
+}
