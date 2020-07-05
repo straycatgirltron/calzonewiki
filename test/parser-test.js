@@ -24,6 +24,7 @@ function compareEquality(actual, expected) {
     chai.expect(actual.title).to.eql(expected.title);
     chai.expect(actual.tags).to.eql(expected.tags);
     chai.expect(actual.children.length).to.eql(expected.children.length);
+    chai.expect(actual.content).to.eql(expected.content);
     for (let i = 0; i < actual.children.length; i++) {
         compareChildren(actual.children[i], expected.children[i]);
     }
@@ -37,13 +38,14 @@ describe("Parser", function() {
             const expectedResult = {
                 title: "page title",
                 tags: ["tag1", "tag2", "tag3"],
+                content: "",
                 children: []
             };
 
             console.log(theMoney);
             console.log(expectedResult);
 
-            chai.expect(theMoney).to.eql(expectedResult);
+            compareEquality(theMoney, expectedResult);
         })
         it("should read a single header from the provided file", async function() {
             let theMoney = await parser.getParsedFile(getRelativeURL("testfiles/single-header.txt"));
@@ -51,6 +53,7 @@ describe("Parser", function() {
             const expectedResult = {
                 title: "these lines are reserved",
                 tags: ["for", "the", "title", "and", "tags"],
+                content: "",
                 children: [
                     {
                         title: "THE TOP LEVEL HEADER",
@@ -63,7 +66,7 @@ describe("Parser", function() {
             console.log(theMoney);
             console.log(expectedResult);
 
-            chai.expect(theMoney).to.eql(expectedResult);
+            compareEquality(theMoney, expectedResult);
         });
 
         it("should also handle any content associated with a header", async function() {
@@ -72,6 +75,7 @@ describe("Parser", function() {
             const expectedResult = {
                 title: "these lines are reserved",
                 tags: ["tag1", "tag2", "tag3"],
+                content: "",
                 children: [
                     {
                         title: "tobuscus",
@@ -83,7 +87,7 @@ describe("Parser", function() {
 
             console.log(theMoney);
             console.log(expectedResult);
-            chai.expect(theMoney).to.eql(expectedResult);
+            compareEquality(theMoney, expectedResult);
         });
 
         it("should preserve a sequence of headers", async function() {
@@ -92,6 +96,7 @@ describe("Parser", function() {
             const expectedResult = {
                 title: "title",
                 tags: ["tags"],
+                content: "",
                 children: [
                     {
                         title: "TOP LEVEL CONTENT ONE",
@@ -110,7 +115,7 @@ describe("Parser", function() {
             console.log(theMoney);
             console.log(expectedResult);
 
-            chai.expect(theMoney).to.eql(expectedResult);
+            compareEquality(theMoney, expectedResult);
         });
 
         it("should allow sections to be nested inside other sections", async function() {
@@ -119,6 +124,7 @@ describe("Parser", function() {
             const expectedResult = {
                 title: "multiple headers test",
                 tags: ["test", "file", "ok"],
+                content: "",
                 children: [
                     {
                         title: "TOP LEVEL SECTION",
@@ -137,7 +143,7 @@ describe("Parser", function() {
             console.log(theMoney);
             console.log(expectedResult);
 
-            chai.expect(theMoney).to.eql(expectedResult);
+            compareEquality(theMoney, expectedResult);
         });
 
         it("should hold up to this stress test", async function() {
@@ -146,6 +152,7 @@ describe("Parser", function() {
             const expectedResult = {
                 title: "How I achieved Autofellatio without Removing My Ribs",
                 tags: ["autofellatio", "dick", "suction", "technique"],
+                content: "",
                 children: [
                     {
                         title: "My Story",
@@ -184,6 +191,54 @@ describe("Parser", function() {
 
             compareEquality(theMoney, expectedResult);
             
+        });
+
+        it("should read a page summary and associate it with the content object", async function() {
+            let theMoney = await parser.getParsedFile(getRelativeURL("testfiles/summary-no-header.txt"));
+
+            const expectedResult = {
+                title: "summary content test",
+                tags: ["test", "title"],
+                content: "this is the summary content which we do not want to nest there is a bit more of it i guess :)",
+                children: [
+                    {
+                        title: "HEADER",
+                        content: "oops now its over",
+                        children: []
+                    }
+                ]
+            };
+
+            compareEquality(theMoney, expectedResult);
+        });
+
+        it("should be resilient if the user fucks up a header", async function() {
+            let theMoney = await parser.getParsedFile(getRelativeURL("testfiles/skip-header-levels.txt"));
+
+            const expectedResult = {
+                title: "title",
+                tags: ["tags"],
+                content: "",
+                children: [
+                    {
+                        title: "the first",
+                        content: "content",
+                        children: [
+                            {
+                                title: "UNNAMED SECTION",
+                                content: "",
+                                children: [
+                                    {
+                                        title: "THE THIRD",
+                                        content: "what?",
+                                        children: []
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            };
         });
     });
 });

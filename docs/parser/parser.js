@@ -61,6 +61,7 @@ class Parser {
      * @param {Object} content - the page content.
      */
     refineContent(content) {
+        content.content = content.content.trim();
         for (let child of content.children) {
             child.content = child.content.trim();
             this.refineContent(child);
@@ -82,6 +83,7 @@ class Parser {
         let content = {
             title: title,
             tags: tags,
+            content: "",
             children: []
         };
         let sectionNumber = [];
@@ -119,6 +121,9 @@ class Parser {
                 // line belongs to currently active header. start writing.
                 if (target) {
                     target.content += " " + line;
+                } else {
+                    // will only occur if inserting main summary
+                    content.content += " " + line;
                 }
             }
         }
@@ -128,5 +133,13 @@ class Parser {
         this.refineContent(content);
 
         return content;
+    }
+
+    /**
+     * @param {Object} content - our parsed object
+     * @returns {HTMLElement} - The root element for our page
+     */
+    generateElements(content) {
+        
     }
 }
