@@ -2,6 +2,8 @@
 // https://www.matteoagosti.com/blog/2013/02/24/writing-javascript-modules-for-both-browser-and-node/
 // drop the node: https://stackoverflow.com/questions/42857778/how-do-you-run-mocha-tests-in-the-browser
 
+// account for content before sections -- main summary
+
 class Parser {
     async getParsedFile(filename) {
         let docPromise = new Promise((res, rej) => {
@@ -68,7 +70,7 @@ class Parser {
     parseFile(resp) {
 
         let contents = resp.trim();
-        let lines = contents.split(/\r\n/).map((value) => value.trim());
+        let lines = contents.split(/\r?\n/).map((value) => value.trim());
         // read each line separately
 
         let title = lines[0];
@@ -116,7 +118,7 @@ class Parser {
 
                 // line belongs to currently active header. start writing.
                 if (target) {
-                    target.content = target.content.concat(line + "\n");
+                    target.content += " " + line;
                 }
             }
         }
