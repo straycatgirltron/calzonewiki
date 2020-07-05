@@ -8,12 +8,8 @@ class Parser {
             let readLocalFile = new XMLHttpRequest();
             readLocalFile.open("GET", filename, true);
             readLocalFile.send();
-            console.log("related schpiel");
-            console.log(filename);
             readLocalFile.onload = function() {
-                console.log(readLocalFile.status);
                 if (readLocalFile.readyState === XMLHttpRequest.DONE && (readLocalFile.status >= 200 && readLocalFile.status < 400)) {
-                    console.log("read!");
                     res(readLocalFile.responseText);
                 }
             }
@@ -43,7 +39,7 @@ class Parser {
     createHeaderIfNotExists(sectionNumber, content) {
         let curNode = content;
         for (const index of sectionNumber) {
-            if (curNode.children[index] === undefined) {
+            if (!curNode.children[index]) {
                 // insert a new node, which we need to traverse
                 curNode.children[index] = {
                     content: "",
@@ -58,6 +54,17 @@ class Parser {
         return curNode;
     }
 
+    /**
+     * 
+     * @param {Object} content - the page content.
+     */
+    refineContent(content) {
+        for (let child of content.children) {
+            child.content = child.content.trim();
+            this.refineContent(child);
+        }
+    }
+
     parseFile(resp) {
 
         let contents = resp.trim();
@@ -70,17 +77,22 @@ class Parser {
         // tha content
         const headerRegex = new RegExp(/^#+/, "gm");
 
-        let content = {children: []};
+        let content = {
+            title: title,
+            tags: tags,
+            children: []
+        };
         let sectionNumber = [];
 
         let target;
 
-        for (const line of lines.slice(2)) {
-            const isHeaderLine = line.match(headerRegex)[0];
-            const headerLevel = isHeaderLine.length;
+        for (let line of lines.slice(2)) {
+            line = line.trim();
+            let headerMatches = line.match(headerRegex);
 
             // check if line is a header, and split into content appropriately
-            if (headerLevel != 0) {
+            if (headerMatches) {
+                const headerLevel = headerMatches[0].length;
                 if (sectionNumber.length < headerLevel) {
                     while (sectionNumber.length < headerLevel) {
                         sectionNumber[sectionNumber.length] = 0;
@@ -97,16 +109,21 @@ class Parser {
 
                 // get the node we currently plan to modify
                 target = this.createHeaderIfNotExists(sectionNumber, content);
+
+                target.title = line.substring(headerLevel).trim();
+
             } else {
 
                 // line belongs to currently active header. start writing.
-                if (target !== undefined) {
-                    target.content.append(line + "\n");
+                if (target) {
+                    target.content = target.content.concat(line + "\n");
                 }
             }
         }
 
         // should be parsed at this point
+
+        this.refineContent(content);
 
         return content;
     }

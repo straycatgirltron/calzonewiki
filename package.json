@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "start firefox test/testpage.html"
+    "test": "start firefox localhost:8000/test/testpage.html"
   },
   "repository": {
     "type": "git",
