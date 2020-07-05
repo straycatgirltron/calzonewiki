@@ -92,6 +92,33 @@ describe("Parser", function() {
 
             chai.expect(theMoney).to.eql(expectedResult);
         });
+
+        it("should allow sections to be nested inside other sections", async function() {
+            let theMoney = await parser.getParsedFile(getRelativeURL("multiple-headers-different-levels.txt"));
+
+            const expectedResult = {
+                title: "multiple headers test",
+                tags: ["test", "file", "ok"],
+                children: [
+                    {
+                        title: "TOP LEVEL SECTION",
+                        content: "this is the content associated with the top level section",
+                        children: [
+                            {
+                                title: "SECOND LEVEL SECTION",
+                                content: "this is the content associated with the nested section",
+                                children: []
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            console.log(theMoney);
+            console.log(expectedResult);
+
+            chai.expect(theMoney).to.eql(expectedResult);
+        });
     });
 });
 
