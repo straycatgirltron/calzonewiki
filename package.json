@@ -1,0 +1,28 @@
+{
+  "name": "calzonewiki",
+  "version": "1.0.0",
+  "description": "Client-side tools for the Calzone Wiki",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "start firefox localhost:8000/test/testpage.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/straycatgirltron/calzonewiki.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/straycatgirltron/calzonewiki/issues"
+  },
+  "homepage": "https://github.com/straycatgirltron/calzonewiki#readme",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "http-server": "^0.12.3",
+    "mocha": "^8.0.1"
+  }
+}
