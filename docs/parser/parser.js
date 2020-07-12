@@ -3,8 +3,12 @@
 // drop the node: https://stackoverflow.com/questions/42857778/how-do-you-run-mocha-tests-in-the-browser
 
 // account for content before sections -- main summary
-
 class Parser {
+
+    constructor() {
+        this.PARSER_TERMINATORS = "![*";
+    }
+
     async getParsedFile(filename) {
         let docPromise = new Promise((res, rej) => {
             let readLocalFile = new XMLHttpRequest();
@@ -69,7 +73,6 @@ class Parser {
     }
 
     parseFile(resp) {
-
         let contents = resp.trim();
         let lines = contents.split(/\r?\n/).map((value) => value.trim());
         // read each line separately
@@ -140,6 +143,42 @@ class Parser {
      * @returns {HTMLElement} - The root element for our page
      */
     generateElements(content) {
-        
+        // solve this problem recursively
+        // recurse into subobjects, and elements.
+    }
+
+    generateElementsRecursive(element, content) {
+        // turn the content object into something stream-like
+        // create some stream-like string reader class to match
+        // good for formatting -- if we find a formatting rule
+        // we can recurse and describe additional elements within
+
+        // im not gonna parse headers though
+
+        // impl:
+            // read forward until we hit a formatting line
+            // return the element associated with that formatting line
+            // nest that element within element
+            // pass that to another recursive call and pass the string stream
+            // if we reach the end of the stream while parsing return null
+            // element detaches and thats it
+
+            // we could try writing several regex rules but that seems shitty
+            // for the most part we can go char by char and only break out a regex rule
+            // if we encounter something with nasty formatting
+            // create a private local list of chars to parse and
+            // only use regex when we encounter a character we need to parse
+            // "[*!" for now
+
+        // handling bulleted lists
+            // bulleted lists are weird because we want all of our list elements to be
+            // grouped together. not only that but a break in a bulleted list ("\r?\n")
+            // should do pretty much nothing in other contexts.
+            // that and indenting
+            // could create another function which specifically handles list parsing
+            // and escapes once it concludes that its at the end of a list (line which
+            // does not start with "-")
+
+            // whatever we use for that we could extend to enumerated lists as well
     }
 }
