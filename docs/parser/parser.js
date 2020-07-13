@@ -148,9 +148,11 @@ class Parser {
         let pageContent = document.createElement("article");
         for (let child of content.children) {
             // generate header in here
-            let newSection = generateElementsRecursive(document.createElement("section"), child);
+            let newSection = this.generateElementsRecursive(document.createElement("section"), child);
             pageContent.appendChild(newSection);
         }
+
+        return pageContent;
     }
 
     generateElementsRecursive(element, content, headerLevel = 1) {
@@ -190,7 +192,7 @@ class Parser {
 
         if (typeof content === "object") {
             stream = new Stringstream(content.content);
-            let header = document.createElement("h" + headerLevel);
+            let header = document.createElement("h" + (headerLevel + 1));
             header.innerText = content.title;
             element.appendChild(header);
         } else {
@@ -209,17 +211,21 @@ class Parser {
             switch (terminator) {
                 case "*":
                     let regex = new RegExp(/(\*+)(.*)\1/);
-                    string_content = stream.regexRead(regex)[2];
+                    let match = stream.regexRead(regex);
+                    console.log(match);
+                    string_content = match[2];
                     let sub_elem = document.createElement("b");
-                    this.generateElementsRecursive(string_content, sub_elem);
+                    this.generateElementsRecursive(sub_elem, string_content);
                     element.appendChild(sub_elem);
                     break;
             }
         }
 
         if (typeof content === "object") {
+            console.log(content);
             for (let child of content.children) {
-                element.appendChild(document.createElement("section"), child, headerLevel + 1);
+                console.log(child);
+                element.appendChild(this.generateElementsRecursive(document.createElement("section"), child, headerLevel + 1));
             }
         }
 

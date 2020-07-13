@@ -172,7 +172,7 @@ describe("Parser", function() {
                         children: [
                             {
                                 title: "The Change",
-                                content: "I instantly became erect after seeing a small coin lodged in the dirt (a personal, if humiliating fetish) and my massive member covered the road, stopping an ongoing robbery in its tracks. Imagine my shock at these events. Suddenly I realized that my burden was far from it.",
+                                content: "I instantly became erect after seeing a small coin *lodged* in the dirt (a personal, if humiliating fetish) and my massive member covered the road, stopping an ongoing robbery in its tracks. Imagine my shock at these events. Suddenly I realized that my burden was far from it.",
                                 children: [
                                     {
                                         title: "Cum Channel",
@@ -241,6 +241,12 @@ describe("Parser", function() {
             };
 
             compareEquality(theMoney, expectedResult);
+
+            let target = document.getElementById("test-zone");
+            let result = await parser.getParsedFile(getRelativeURL("testfiles/stress-test.txt"));
+
+            let elem = parser.generateElements(result);
+            target.appendChild(elem);
         });
     });
 });
@@ -386,5 +392,8 @@ describe("Stringstream", function() {
         });
     });
 });
+
+
+
 
 
