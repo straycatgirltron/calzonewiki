@@ -15,24 +15,26 @@ class Stringstream {
     /**
      * Reads forward in the stream until a desired character is found.
      * @param {*} terminator - A string containing all terminating characters.
+     * @effects - adjusts the internal index to the character after the terminator
      * @returns {[char, String]} - The terminating character, and an ordered string with all characters processed.
      *                             char is null if terminating character is not found.
      */
     readToTerminator(terminator) {
         let nextChar;
+        let term;
 
-        prevIndex = this.index;
-        while (index < limit) {
-            nextChar = this.str.charAt(index);
-            let term = terminator.indexOf(nextChar);
+        let prevIndex = this.index;
+        while (this.index < this.limit) {
+            nextChar = this.str.charAt(this.index);
+            term = terminator.indexOf(nextChar);
             if (term > -1) {
-                return [terminator.charAt(term), str.substring(prevIndex, index)];
+                return [terminator.charAt(term), this.str.substring(prevIndex, this.index++)];
             }
 
-            index++;
+            this.index++;
         }
-
-        return [null, str.substring(prevIndex)];
+        
+        return [null, this.str.substring(prevIndex)];
     }
 
     /**
@@ -43,13 +45,37 @@ class Stringstream {
      */
     regexRead(regexp) {
         // whatever man i dont care man
-        let result = this.str.substr(index).match(regexp);
+        let result = this.str.substr(this.index).match(regexp);
 
         if (result) {
             // this should be fine i think :/
-            index += result.index + result[0].length;
+            this.index += result.index + result[0].length;
         }
 
         return result;
+    }
+
+    /**
+     * Reads the next character in the stream, if available. Otherwise returns null.
+     * @returns - next char or null
+     */
+    getChar() {
+        if (this.index < this.limit) {
+            return this.str.charAt(this.index++);
+        }
+
+        return null;
+    }
+
+    /**
+     * Backs the internal pointer up by 1 char.
+     */
+    undoChar() {
+        if (this.index > this.limit) {
+            this.index = this.limit;
+        }
+        if (this.index > 0) {
+            this.index--;
+        }
     }
 }
