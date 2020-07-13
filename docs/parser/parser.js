@@ -208,6 +208,8 @@ class Parser {
             stream.undoChar();
             // append text to element
             element.appendChild(document.createTextNode(string_content));
+
+            // parsing is handled here -- factor out lol
             switch (terminator) {
                 case "*":
                     let regex = new RegExp(/(\*+)(.*)\1/);
