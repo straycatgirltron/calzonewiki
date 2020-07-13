@@ -6,7 +6,7 @@
 class Parser {
 
     constructor() {
-        this.PARSER_TERMINATORS = "![*";
+        this.PARSER_TERMINATORS = "*";
     }
 
     async getParsedFile(filename) {
@@ -145,9 +145,15 @@ class Parser {
     generateElements(content) {
         // solve this problem recursively
         // recurse into subobjects, and elements.
+        let pageContent = document.createElement("article");
+        for (let child of content.children) {
+            // generate header in here
+            let newSection = generateElementsRecursive(document.createElement("section"), child);
+            pageContent.appendChild(newSection);
+        }
     }
 
-    generateElementsRecursive(element, content) {
+    generateElementsRecursive(element, content, headerLevel = 1) {
         // turn the content object into something stream-like
         // create some stream-like string reader class to match
         // good for formatting -- if we find a formatting rule
@@ -180,5 +186,43 @@ class Parser {
             // does not start with "-")
 
             // whatever we use for that we could extend to enumerated lists as well
+        let stream;
+
+        if (typeof content === "object") {
+            stream = new Stringstream(content.content);
+            let header = document.createElement("h" + headerLevel);
+            header.innerText = content.title;
+            element.appendChild(header);
+        } else {
+            // string
+            stream = new Stringstream(content);
+        }
+            
+        let terminator = true;  // need to give it a value which is not falsy
+        let string_content;
+
+        while (terminator) {
+            [terminator, string_content] = stream.readToTerminator(this.PARSER_TERMINATORS);
+            stream.undoChar();
+            // append text to element
+            element.appendChild(document.createTextNode(string_content));
+            switch (terminator) {
+                case "*":
+                    let regex = new RegExp(/(\*+)(.*)\1/);
+                    string_content = stream.regexRead(regex)[2];
+                    let sub_elem = document.createElement("b");
+                    this.generateElementsRecursive(string_content, sub_elem);
+                    element.appendChild(sub_elem);
+                    break;
+            }
+        }
+
+        if (typeof content === "object") {
+            for (let child of content.children) {
+                element.appendChild(document.createElement("section"), child, headerLevel + 1);
+            }
+        }
+
+        return element;
     }
 }
