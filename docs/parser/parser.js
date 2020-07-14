@@ -192,7 +192,7 @@ class Parser {
 
         if (typeof content === "object") {
             stream = new Stringstream(content.content);
-            let header = document.createElement("h" + (headerLevel + 1));
+            let header = document.createElement("h" + Math.min(headerLevel + 1, 6));
             header.innerText = content.title;
             element.appendChild(header);
         } else {
@@ -216,7 +216,7 @@ class Parser {
                     let match = stream.regexRead(regex);
                     console.log(match);
                     string_content = match[2];
-                    let sub_elem = document.createElement("b");
+                    let sub_elem = document.createElement("strong");
                     this.generateElementsRecursive(sub_elem, string_content);
                     element.appendChild(sub_elem);
                     break;
