@@ -146,6 +146,20 @@ class Parser {
         // solve this problem recursively
         // recurse into subobjects, and elements.
         let pageContent = document.createElement("article");
+        let header = document.createElement("h1");
+        header.innerText = content.title;
+        pageContent.appendChild(header);
+
+        let tags = document.createElement("p");
+        tags.innerText = "Tags: " + content.tags.join(", ");
+        tags.classList.add("tags");
+        pageContent.appendChild(tags);
+
+        let summary = document.createElement("p");
+        summary.classList.add("summary");
+        summary.innerText = content.content;
+        pageContent.appendChild(summary);
+        
         for (let child of content.children) {
             // generate header in here
             let newSection = this.generateElementsRecursive(document.createElement("section"), child);
