@@ -3,8 +3,12 @@
 // drop the node: https://stackoverflow.com/questions/42857778/how-do-you-run-mocha-tests-in-the-browser
 
 // account for content before sections -- main summary
-
 class Parser {
+
+    constructor() {
+        this.PARSER_TERMINATORS = "*";
+    }
+
     async getParsedFile(filename) {
         let docPromise = new Promise((res, rej) => {
             let readLocalFile = new XMLHttpRequest();
@@ -69,7 +73,6 @@ class Parser {
     }
 
     parseFile(resp) {
-
         let contents = resp.trim();
         let lines = contents.split(/\r?\n/).map((value) => value.trim());
         // read each line separately
@@ -140,6 +143,108 @@ class Parser {
      * @returns {HTMLElement} - The root element for our page
      */
     generateElements(content) {
+        // solve this problem recursively
+        // recurse into subobjects, and elements.
+        let pageContent = document.createElement("article");
+        let header = document.createElement("h1");
+        header.innerText = content.title;
+        pageContent.appendChild(header);
+
+        let tags = document.createElement("p");
+        tags.innerText = "Tags: " + content.tags.join(", ");
+        tags.classList.add("tags");
+        pageContent.appendChild(tags);
+
+        let summary = document.createElement("p");
+        summary.classList.add("summary");
+        summary.innerText = content.content;
+        pageContent.appendChild(summary);
         
+        for (let child of content.children) {
+            // generate header in here
+            let newSection = this.generateElementsRecursive(document.createElement("section"), child);
+            pageContent.appendChild(newSection);
+        }
+
+        return pageContent;
+    }
+
+    generateElementsRecursive(element, content, headerLevel = 1) {
+        // turn the content object into something stream-like
+        // create some stream-like string reader class to match
+        // good for formatting -- if we find a formatting rule
+        // we can recurse and describe additional elements within
+
+        // im not gonna parse headers though
+
+        // impl:
+            // read forward until we hit a formatting line
+            // return the element associated with that formatting line
+            // nest that element within element
+            // pass that to another recursive call and pass the string stream
+            // if we reach the end of the stream while parsing return null
+            // element detaches and thats it
+
+            // we could try writing several regex rules but that seems shitty
+            // for the most part we can go char by char and only break out a regex rule
+            // if we encounter something with nasty formatting
+            // create a private local list of chars to parse and
+            // only use regex when we encounter a character we need to parse
+            // "[*!" for now
+
+        // handling bulleted lists
+            // bulleted lists are weird because we want all of our list elements to be
+            // grouped together. not only that but a break in a bulleted list ("\r?\n")
+            // should do pretty much nothing in other contexts.
+            // that and indenting
+            // could create another function which specifically handles list parsing
+            // and escapes once it concludes that its at the end of a list (line which
+            // does not start with "-")
+
+            // whatever we use for that we could extend to enumerated lists as well
+        let stream;
+
+        if (typeof content === "object") {
+            stream = new Stringstream(content.content);
+            let header = document.createElement("h" + Math.min(headerLevel + 1, 6));
+            header.innerText = content.title;
+            element.appendChild(header);
+        } else {
+            // string
+            stream = new Stringstream(content);
+        }
+            
+        let terminator = true;  // need to give it a value which is not falsy
+        let string_content;
+
+        while (terminator) {
+            [terminator, string_content] = stream.readToTerminator(this.PARSER_TERMINATORS);
+            stream.undoChar();
+            // append text to element
+            element.appendChild(document.createTextNode(string_content));
+
+            // parsing is handled here -- factor out lol
+            switch (terminator) {
+                case "*":
+                    let regex = new RegExp(/(\*+)(.*)\1/);
+                    let match = stream.regexRead(regex);
+                    console.log(match);
+                    string_content = match[2];
+                    let sub_elem = document.createElement("strong");
+                    this.generateElementsRecursive(sub_elem, string_content);
+                    element.appendChild(sub_elem);
+                    break;
+            }
+        }
+
+        if (typeof content === "object") {
+            console.log(content);
+            for (let child of content.children) {
+                console.log(child);
+                element.appendChild(this.generateElementsRecursive(document.createElement("section"), child, headerLevel + 1));
+            }
+        }
+
+        return element;
     }
 }

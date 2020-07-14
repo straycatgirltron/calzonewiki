@@ -172,7 +172,7 @@ describe("Parser", function() {
                         children: [
                             {
                                 title: "The Change",
-                                content: "I instantly became erect after seeing a small coin lodged in the dirt (a personal, if humiliating fetish) and my massive member covered the road, stopping an ongoing robbery in its tracks. Imagine my shock at these events. Suddenly I realized that my burden was far from it.",
+                                content: "I instantly became erect after seeing a small coin *lodged* in the dirt (a personal, if humiliating fetish) and my massive member covered the road, stopping an ongoing robbery in its tracks. Imagine my shock at these events. Suddenly I realized that my burden was far from it.",
                                 children: [
                                     {
                                         title: "Cum Channel",
@@ -239,8 +239,161 @@ describe("Parser", function() {
                     }
                 ]
             };
+
+            compareEquality(theMoney, expectedResult);
+
+            let target = document.getElementById("test-zone");
+            let result = await parser.getParsedFile(getRelativeURL("testfiles/stress-test.txt"));
+
+            let elem = parser.generateElements(result);
+            target.appendChild(elem);
         });
     });
 });
+
+describe("Stringstream", function() {
+    describe("#readToTerminator", function() {
+        it("should be have correctly if an empty string is passed in", function() {
+            let stream = new Stringstream("");
+            let [terminator, content] = stream.readToTerminator("");
+            chai.expect(content).to.eql("");
+            chai.expect(terminator).to.be.null;
+            chai.expect(stream.getChar()).to.be.null;
+        });
+
+        it("should read an entire string if no terminators are available", function() {
+            let parseString = "hello there!";
+            let stream = new Stringstream(parseString);
+            let [terminator, content] = stream.readToTerminator("");
+            chai.expect(content).to.eql(parseString);
+            chai.expect(terminator).to.be.null;
+        });
+
+        it("should stop reading once it reaches a terminator", function() {
+            let parseString = "this is a space separated message";
+            let stream = new Stringstream(parseString);
+            let [terminator, content] = stream.readToTerminator(" ");
+            chai.expect(content).to.eql("this");
+            chai.expect(terminator).to.eql(" ");
+        });
+        
+        it("should pick up where it left off", function() {
+            let parseString = "i dont want to talk about the monkey";
+            let stream = new Stringstream(parseString);
+            
+            let [terminator, content] = stream.readToTerminator(" ");
+            chai.expect(content).to.eql("i");
+            chai.expect(terminator).to.eql(" ");
+
+            [terminator, content] = stream.readToTerminator(" ");
+            chai.expect(content).to.eql("dont");
+            chai.expect(terminator).to.eql(" ");
+
+            [terminator, content] = stream.readToTerminator(" ");
+            chai.expect(content).to.eql("want");
+            chai.expect(terminator).to.eql(" ");
+
+            [terminator, content] = stream.readToTerminator(" ");
+            chai.expect(content).to.eql("to");
+            chai.expect(terminator).to.eql(" ");
+
+            [terminator, content] = stream.readToTerminator(" ");
+            chai.expect(content).to.eql("talk");
+            chai.expect(terminator).to.eql(" ");
+        });
+
+        it("should detect multiple terminators", function() {
+            let parseString = "i [hate] the *media* and everything it does to (me)";
+            let stream = new Stringstream(parseString);
+
+            let terminators = "[*(";
+
+            let [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(content).to.eql("i ");
+            chai.expect(terminator).to.eql("[");
+
+            [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(content).to.eql("hate] the ");
+            chai.expect(terminator).to.eql("*");
+
+            [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(content).to.eql("media");
+            chai.expect(terminator).to.eql("*");
+
+            [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(content).to.eql(" and everything it does to ");
+            chai.expect(terminator).to.eql("(");
+            
+            [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(content).to.eql("me)");
+            chai.expect(terminator).to.be.null;
+        });
+    });
+
+    describe("#regexRead", function() {
+        it("should stop reading once it hits a matching bit of regex, returning matching groups correctly", function() {
+            let parseString = "tw // [food]";
+            let stream = new Stringstream(parseString);
+            let match = stream.regexRead(new RegExp(/\[(.*)\]/));
+            chai.expect(match[0]).to.eql("[food]");
+            chai.expect(match[1]).to.eql("food");
+
+            chai.expect(stream.getChar()).to.be.null;
+        });
+
+        it("should return a falsy value if there are no matching sequences", function() {
+            let parseString = "this is what i do when im in horny mode";
+            let stream = new Stringstream(parseString);
+            let match = stream.regexRead(new RegExp(/\[(.*)\]/));
+            chai.expect(match).to.be.null;
+        });
+
+        it("should not adjust the internal pointer if a match fails", function() {
+            let parseString = "this is what i do when im in horny mode";
+            let stream = new Stringstream(parseString);
+            let match = stream.regexRead(new RegExp(/\[(.*)\]/));
+            chai.expect(match).to.be.null;
+
+            for (let i = 0; i < parseString.length; i++) {
+                chai.expect(parseString.charAt(i)).to.eql(stream.getChar());
+            }
+        });
+    });
+
+    describe("#finalTests", function() {
+        it("should hold up to a final stress test", function() {
+            let parseString = "This is my **new page** that i [write] for you:)";
+            let stream = new Stringstream(parseString);
+            let terminators = "*[";
+
+            let [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(content).to.eql("This is my ");
+            chai.expect(terminator).to.eql("*");
+
+            stream.undoChar();
+
+            let matches = stream.regexRead(new RegExp(/(\*\*?)(.*)\1/));
+            chai.expect(matches[1]).to.eql("**");
+            chai.expect(matches[2]).to.eql("new page");
+
+            [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(terminator).to.eql("[");
+            chai.expect(content).to.eql(" that i ");
+
+            stream.undoChar();
+
+            matches = stream.regexRead(new RegExp(/\[(.*)\]/));
+            console.log(matches);
+            chai.expect(matches[1]).to.eql("write");
+            
+            [terminator, content] = stream.readToTerminator(terminators);
+            chai.expect(terminator).to.be.null;
+            chai.expect(content).to.eql(" for you:)");
+        });
+    });
+});
+
+
+
 
 
