@@ -243,7 +243,7 @@ describe("Parser", function() {
             compareEquality(theMoney, expectedResult);
 
             let target = document.getElementById("test-zone");
-            let result = await parser.getParsedFile(getRelativeURL("testfiles/stress-test.txt"));
+            let result = await parser.getParsedFile(getRelativeURL("testfiles/dropzone.txt"));
 
             let elem = parser.generateElements(result);
             target.appendChild(elem);
