@@ -6,7 +6,7 @@
 class Parser {
 
     constructor() {
-        this.PARSER_TERMINATORS = "*[";
+        this.PARSER_TERMINATORS = "*[!";
     }
 
     async getParsedFile(filename) {
@@ -266,7 +266,8 @@ class Parser {
                 case "[":
                     // attempt to match image
                     // if fails: just append
-                    regex = new RegExp(/\[(.*)\]\((.*)\)/)
+                    console.log("link");
+                    regex = new RegExp(/\[(.*?)\]\((.*?)\)/)
                     match = stream.regexRead(regex);
                     if (match) {
                         let sub_elem = document.createElement("a");
@@ -278,6 +279,19 @@ class Parser {
                     }
 
                     break;
+
+                case "!":
+                    console.log("image");
+                    regex = new RegExp(/\!\[(.*?)\]\((.*?)\)/);
+                    match = stream.regexRead(regex);
+                    if (match) {
+                        let sub_elem = document.createElement("img");
+                        sub_elem.src = match[2];
+                        sub_elem.alt = match[1];
+                        element.appendChild(sub_elem);
+                    } else {
+                        textNode.appendData(stream.getChar());
+                    }
             }
         }
 
