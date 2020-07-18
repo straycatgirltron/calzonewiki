@@ -281,6 +281,7 @@ class Parser {
                     break;
 
                 case "!":
+                    // turn into a caption thing
                     console.log("image");
                     regex = new RegExp(/\!\[(.*?)\]\((.*?)\)/);
                     match = stream.regexRead(regex);
