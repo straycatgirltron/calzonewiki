@@ -230,8 +230,26 @@ class Parser {
                     let match = stream.regexRead(regex);
                     console.log(match);
                     string_content = match[2];
-                    let sub_elem = document.createElement("strong");
-                    this.generateElementsRecursive(sub_elem, string_content);
+                    let sub_elem;
+
+                    switch (match[1].length) {
+                        case 1:
+                            sub_elem = document.createElement("em");
+                            this.generateElementsRecursive(sub_elem, string_content);
+                            break;
+                        case 2:
+                            sub_elem = document.createElement("strong");
+                            this.generateElementsRecursive(sub_elem, string_content);
+                            break;
+                        default:
+                            // > 2
+                            sub_elem = document.createElement("strong");
+                            sub_elem.appendChild(document.createElement("em"));
+                            sub_elem = sub_elem.children[0];
+                            this.generateElementsRecursive(sub_elem, string_content);
+                            sub_elem = sub_elem.parentElement;
+                    }
+
                     element.appendChild(sub_elem);
                     break;
             }
