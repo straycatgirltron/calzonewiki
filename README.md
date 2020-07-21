@@ -13,5 +13,11 @@ use # for header levels
 higher levels nest inside lower levels
 
 ## formatting
-use asterisks for bold text
-`*hello*` -> **hello**
+use asterisks for bold/italic text
+`**hello**` -> **hello**
+
+`*hi*` -> *hi*
+
+`[text](link)` -> [text](link)
+
+`![caption](img link)` creates an image

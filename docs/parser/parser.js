@@ -6,7 +6,7 @@
 class Parser {
 
     constructor() {
-        this.PARSER_TERMINATORS = "*";
+        this.PARSER_TERMINATORS = "*[!";
     }
 
     async getParsedFile(filename) {
@@ -221,26 +221,83 @@ class Parser {
             [terminator, string_content] = stream.readToTerminator(this.PARSER_TERMINATORS);
             stream.undoChar();
             // append text to element
-            element.appendChild(document.createTextNode(string_content));
+            let textNode = document.createTextNode(string_content);
+            element.appendChild(textNode);
 
             // parsing is handled here -- factor out lol
+            let regex;
+            let match;
+
             switch (terminator) {
                 case "*":
-                    let regex = new RegExp(/(\*+)(.*)\1/);
-                    let match = stream.regexRead(regex);
-                    console.log(match);
-                    string_content = match[2];
-                    let sub_elem = document.createElement("strong");
-                    this.generateElementsRecursive(sub_elem, string_content);
+                    regex = new RegExp(/(\*+)(.*)\1/);
+                    match = stream.regexRead(regex);
+                    if (match) {
+                        string_content = match[2];
+                    } else {
+                        // skip the character
+                        textNode.appendData(stream.getChar());
+                        break;
+                    }
+                    
+                    let sub_elem;
+
+                    switch (Math.min(match[1].length, 3)) {
+                        case 1:
+                            sub_elem = document.createElement("em");
+                            this.generateElementsRecursive(sub_elem, string_content);
+                            break;
+                        case 2:
+                            sub_elem = document.createElement("strong");
+                            this.generateElementsRecursive(sub_elem, string_content);
+                            break;
+                        case 3:
+                            // > 2
+                            sub_elem = document.createElement("strong");
+                            sub_elem.appendChild(document.createElement("em"));
+                            sub_elem = sub_elem.children[0];
+                            this.generateElementsRecursive(sub_elem, string_content);
+                            sub_elem = sub_elem.parentElement;
+                    }
+
                     element.appendChild(sub_elem);
                     break;
+
+                case "[":
+                    // attempt to match image
+                    // if fails: just append
+                    console.log("link");
+                    regex = new RegExp(/\[(.*?)\]\((.*?)\)/)
+                    match = stream.regexRead(regex);
+                    if (match) {
+                        let sub_elem = document.createElement("a");
+                        sub_elem.href = match[2];
+                        sub_elem.innerText = match[1];
+                        element.appendChild(sub_elem);
+                    } else {
+                        textNode.appendData(stream.getChar());
+                    }
+
+                    break;
+
+                case "!":
+                    // turn into a caption thing
+                    console.log("image");
+                    regex = new RegExp(/\!\[(.*?)\]\((.*?)\)/);
+                    match = stream.regexRead(regex);
+                    if (match) {
+                        let sub_elem = document.createElement("img");
+                        sub_elem.src = match[2];
+                        sub_elem.alt = match[1];
+                        element.appendChild(sub_elem);
+                    } else {
+                        textNode.appendData(stream.getChar());
+                    }
             }
         }
 
         if (typeof content === "object") {
-            console.log(content);
             for (let child of content.children) {
-                console.log(child);
                 element.appendChild(this.generateElementsRecursive(document.createElement("section"), child, headerLevel + 1));
             }
         }
